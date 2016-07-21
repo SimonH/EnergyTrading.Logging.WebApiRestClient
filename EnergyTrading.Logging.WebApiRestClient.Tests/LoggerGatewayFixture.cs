@@ -30,10 +30,10 @@ namespace EnergyTrading.Logging.WebApiRestClient.Tests
         [Test]
         public void CorrectServiceUri()
         {
-            var candidate = new TestLoggerGateway("http://baseuri").GetServiceUri();
-            Assert.That(candidate, Is.EqualTo("http://baseuri/api/logs"));
-            candidate = new TestLoggerGateway("http://baseuri/").GetServiceUri();
-            Assert.That(candidate, Is.EqualTo("http://baseuri/api/logs"));
+            var candidate = new TestLoggerGateway("http://baseuri/path").GetServiceUri();
+            Assert.That(candidate, Is.EqualTo("http://baseuri/path/api/logs"));
+            candidate = new TestLoggerGateway("http://baseuri/path/").GetServiceUri();
+            Assert.That(candidate, Is.EqualTo("http://baseuri/path/api/logs"));
         }
     }
 }

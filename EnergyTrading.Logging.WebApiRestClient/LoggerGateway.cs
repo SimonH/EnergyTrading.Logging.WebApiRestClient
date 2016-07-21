@@ -13,7 +13,8 @@ namespace EnergyTrading.Logging.WebApiRestClient
             {
                 throw new ArgumentOutOfRangeException(nameof(baseUri));
             }
-            this.ServiceUri = new Uri(new Uri(baseUri), "api/logs").ToString();
+            new Uri(baseUri); // tests that baseUri is a valid uri string
+            this.ServiceUri = baseUri + (baseUri.EndsWith("/") ? string.Empty : "/") + "api/logs";
         }
 
         protected string ServiceUri { get; }
