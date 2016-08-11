@@ -7,7 +7,7 @@ namespace EnergyTrading.Logging.WebApiRestClient.TestConsole
     {
         static void Main()
         {
-            var factory = new LoggerFactory("http://localhost:27536");
+            var factory = new LoggerFactory("http://localhost.fiddler:27536");
             Logging.LoggerFactory.SetProvider(() => factory);
             Logging.LoggerFactory.Initialize();
             var logger = Logging.LoggerFactory.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -16,7 +16,7 @@ namespace EnergyTrading.Logging.WebApiRestClient.TestConsole
             {
                 if (!string.IsNullOrWhiteSpace(message))
                 {
-                    logger.Debug(message);
+                    logger.DebugFormat("{0}", "");
                 }
                 else
                 {

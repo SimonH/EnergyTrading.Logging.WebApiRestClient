@@ -21,7 +21,7 @@ namespace EnergyTrading.Logging.WebApiRestClient
 
         public async Task<LogMessage> PostAsync(LogMessage message)
         {
-            return await this.PostAsync(ServiceUri, message);
+            return await this.PostAsync<LogMessage, LogMessage>(ServiceUri, message).ConfigureAwait(false);
         }
     }
 }

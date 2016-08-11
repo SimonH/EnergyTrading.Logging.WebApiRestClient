@@ -4,7 +4,7 @@
         <id>EnergyTrading.Logging.WebApiRestClient</id>
         <title>EnergyTrading.Logging.WebApiRestClient</title>
         <description>common functionality for EnergyTrading webapi client components</description>
-        <version>1.0.0</version>
+        <version>1.0.3</version>
         <releaseNotes></releaseNotes>
         <copyright>2016</copyright>
         <owners>SimonH</owners>

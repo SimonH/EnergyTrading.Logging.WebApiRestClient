@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using EnergyTrading.Contracts.Logging;
 
 namespace EnergyTrading.Logging.WebApiRestClient
@@ -26,7 +27,7 @@ namespace EnergyTrading.Logging.WebApiRestClient
                 CreatingType = this.type,
                 Exception = LogMessageException.FromException(exception),
                 Message = message,
-                Params = parameters
+                Params = FixParameterExceptions(parameters)
             };
             // send the message 
             loggerGateway.PostAsync(messageContract).Wait(); // TODO : - Do we need to wait here? probably not but it probably doesn't hurt either (see if performance becomes an issue or not and/or whether we need to check for a successful result)
@@ -35,6 +36,28 @@ namespace EnergyTrading.Logging.WebApiRestClient
         public void Debug(string message)
         {
             SendLogMessage("Debug", message, null);
+        }
+
+        private static object[] FixParameterExceptions(object[] parameters)
+        {
+            if (parameters == null)
+            {
+                return null;
+            }
+            var list = new List<object>();
+            foreach (var obj in parameters)
+            {
+                var exc = obj as Exception;
+                if (exc != null && !(obj is LogMessageException))
+                {
+                    list.Add(LogMessageException.FromException(exc));
+                }
+                else
+                {
+                    list.Add(obj);
+                }
+            }
+            return list.ToArray();
         }
 
         public void Debug(string message, Exception exception)
