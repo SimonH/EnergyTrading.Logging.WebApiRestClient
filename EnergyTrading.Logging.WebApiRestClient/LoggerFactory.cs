@@ -5,19 +5,21 @@ namespace EnergyTrading.Logging.WebApiRestClient
     public class LoggerFactory : ILoggerFactory
     {
         private readonly string baseUri;
+        private readonly ILogger exceptionLogger;
 
-        public LoggerFactory(string baseUri)
+        public LoggerFactory(string baseUri, ILogger exceptionLogger = null)
         {
             if (string.IsNullOrWhiteSpace(baseUri))
             {
                 throw new ArgumentOutOfRangeException(nameof(baseUri));
             }
             this.baseUri = baseUri;
+            this.exceptionLogger = exceptionLogger;
         }
 
         public ILogger GetLogger(string name)
         {
-            return new Logger(baseUri, name);
+            return new Logger(baseUri, name, exceptionLogger);
         }
 
         public ILogger GetLogger<T>()

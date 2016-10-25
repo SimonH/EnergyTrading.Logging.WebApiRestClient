@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using EnergyTrading.Contracts.Logging;
+using EnergyTrading.Extensions;
 
 namespace EnergyTrading.Logging.WebApiRestClient
 {
@@ -8,7 +10,8 @@ namespace EnergyTrading.Logging.WebApiRestClient
     {
         private readonly LoggerGateway loggerGateway;
         private readonly string type;
-        public Logger(string baseUri, string type)
+        private readonly ILogger exceptionLogger;
+        public Logger(string baseUri, string type, ILogger exceptionLogger = null)
         {
             if (string.IsNullOrWhiteSpace(baseUri))
             {
@@ -16,9 +19,10 @@ namespace EnergyTrading.Logging.WebApiRestClient
             }
             loggerGateway = new LoggerGateway(baseUri);
             this.type = type;
+            this.exceptionLogger = exceptionLogger;
         }
 
-        private void SendLogMessage(string level, string message, Exception exception, params object[] parameters)
+        private Task SendLogMessage(string level, string message, Exception exception, params object[] parameters)
         {
             // do we need to make sure that the parameters are all serializable?
             var messageContract = new LogMessage
@@ -27,112 +31,100 @@ namespace EnergyTrading.Logging.WebApiRestClient
                 CreatingType = this.type,
                 Exception = LogMessageException.FromException(exception),
                 Message = message,
-                Params = FixParameterExceptions(parameters)
+                Params = parameters
             };
             // send the message 
-            loggerGateway.PostAsync(messageContract).Wait(); // TODO : - Do we need to wait here? probably not but it probably doesn't hurt either (see if performance becomes an issue or not and/or whether we need to check for a successful result)
+            return loggerGateway.PostAsync(messageContract);
+        }
+
+        private void ContinueWithExceptionLoggerAction(Task task, string originalMessage)
+        {
+            if (task != null && exceptionLogger != null)
+            {
+                task.ContinueWith((t, o) => 
+                {
+                    exceptionLogger.Warn($"Error calling logging server : {t.Exception.Flatten().AllExceptionMessages()}, original message {originalMessage}");
+                }, null, TaskContinuationOptions.OnlyOnFaulted);
+            }
         }
 
         public void Debug(string message)
         {
-            SendLogMessage("Debug", message, null);
-        }
-
-        private static object[] FixParameterExceptions(object[] parameters)
-        {
-            if (parameters == null)
-            {
-                return null;
-            }
-            var list = new List<object>();
-            foreach (var obj in parameters)
-            {
-                var exc = obj as Exception;
-                if (exc != null && !(obj is LogMessageException))
-                {
-                    list.Add(LogMessageException.FromException(exc));
-                }
-                else
-                {
-                    list.Add(obj);
-                }
-            }
-            return list.ToArray();
+            ContinueWithExceptionLoggerAction(SendLogMessage("Debug", message, null), message);
         }
 
         public void Debug(string message, Exception exception)
         {
-            SendLogMessage("Debug", message, exception);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Debug", message, exception), message);
         }
 
         public void DebugFormat(string format, params object[] parameters)
         {
-            SendLogMessage("Debug", format, null, parameters);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Debug", format, null, parameters), string.Format(format, parameters));
         }
 
         public void Info(string message)
         {
-            SendLogMessage("Info", message, null);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Info", message, null), message);
 
         }
         public void Info(string message, Exception exception)
         {
-            SendLogMessage("Info", message, exception);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Info", message, exception), message);
         }
 
         public void InfoFormat(string format, params object[] parameters)
         {
-            SendLogMessage("Info", format, null, parameters);
-
+            ContinueWithExceptionLoggerAction(SendLogMessage("Info", format, null, parameters), string.Format(format, parameters));
         }
 
         public void Warn(string message)
         {
-            SendLogMessage("Warn", message, null);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Warn", message, null), message);
 
         }
 
         public void Warn(string message, Exception exception)
         {
-            SendLogMessage("Warn", message, exception);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Warn", message, exception), message);
         }
 
         public void WarnFormat(string format, params object[] parameters)
         {
-            SendLogMessage("Info", format, null, parameters);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Info", format, null, parameters), string.Format(format, parameters));
 
         }
 
         public void Error(string message)
         {
-            SendLogMessage("Error", message, null);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Error", message, null), message);
 
         }
 
         public void Error(string message, Exception exception)
         {
-            SendLogMessage("Error", message, exception);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Error", message, exception), message);
         }
 
         public void ErrorFormat(string format, params object[] parameters)
         {
-            SendLogMessage("Error", format, null, parameters);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Error", format, null, parameters), string.Format(format, parameters));
         }
 
         public void Fatal(string message)
         {
-            SendLogMessage("Fatal", message, null);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Fatal", message, null), message);
         }
 
         public void Fatal(string message, Exception exception)
         {
-            SendLogMessage("Fatal", message, exception);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Fatal", message, exception), message);
 
         }
 
         public void FatalFormat(string format, params object[] parameters)
         {
-            SendLogMessage("Fatal", format, null, parameters);
+            ContinueWithExceptionLoggerAction(SendLogMessage("Fatal", format, null, parameters), string.Format(format, parameters));
         }
 
         public bool IsDebugEnabled => true;
