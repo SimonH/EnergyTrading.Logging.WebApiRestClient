@@ -5,19 +5,11 @@ using EnergyTrading.WebApi.Common.Client;
 
 namespace EnergyTrading.Logging.WebApiRestClient
 {
-    public class LoggerGateway : RestGatewayBase
+    public class LoggerGateway : ServiceGatewayBase
     {
-        public LoggerGateway(string baseUri)
+        public LoggerGateway(string baseUri) : base(baseUri, "api/logs")
         {
-            if (string.IsNullOrWhiteSpace(baseUri))
-            {
-                throw new ArgumentOutOfRangeException(nameof(baseUri));
-            }
-            new Uri(baseUri); // tests that baseUri is a valid uri string
-            this.ServiceUri = baseUri + (baseUri.EndsWith("/") ? string.Empty : "/") + "api/logs";
         }
-
-        protected string ServiceUri { get; }
 
         public async Task<LogMessage> PostAsync(LogMessage message)
         {

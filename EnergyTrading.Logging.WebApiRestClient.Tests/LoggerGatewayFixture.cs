@@ -21,8 +21,8 @@ namespace EnergyTrading.Logging.WebApiRestClient.Tests
         [Test]
         public void Construction()
         {
-            Assert.That(() => new LoggerGateway(null), Throws.TypeOf<ArgumentOutOfRangeException>());
-            Assert.That(() => new LoggerGateway("anything"), Throws.TypeOf<UriFormatException>());
+            Assert.That(() => new LoggerGateway(null), Throws.TypeOf<ArgumentException>());
+            Assert.That(() => new LoggerGateway("anything"), Throws.TypeOf<ArgumentException>());
             var candidate = new LoggerGateway("http://baseUri");
             Assert.That(candidate, Is.Not.Null);
         }
